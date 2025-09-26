@@ -1,0 +1,92 @@
+Sql:
+-- Customers table
+CREATE TABLE Customers (
+    CustomerID INT PRIMARY KEY,
+    Name VARCHAR(50),
+    Email VARCHAR(100),
+    Country VARCHAR(50)
+);
+
+-- Products table. Use SELECT, WHERE, ORDER BY, GROUP BY
+-- Get all customers from India
+SELECT * 
+FROM Customers
+WHERE Country = 'India';
+
+-- List products ordered by price descending
+SELECT * 
+FROM Products
+ORDER BY Price DESC;
+
+-- Total orders grouped by customer
+SELECT CustomerID, COUNT(*) AS TotalOrders
+FROM Orders
+GROUP BY CustomerID;
+________________________________________
+✅ b. Use JOINS (INNER, LEFT, RIGHT)
+-- INNER JOIN: Show orders with customer details
+SELECT o.OrderID, c.Name, o.TotalAmount
+FROM Orders o
+INNER JOIN Customers c ON o.CustomerID = c.CustomerID;
+
+-- LEFT JOIN: Show all customers, even if no orders
+SELECT c.Name, o.OrderID
+FROM Customers c
+LEFT JOIN Orders o ON c.CustomerID = o.CustomerID;
+
+-- RIGHT JOIN (if supported by your DB; SQLite doesn’t support it, MySQL does):
+-- Show all orders, even if customer details are missing
+SELECT c.Name, o.OrderID
+FROM Customers c
+RIGHT JOIN Orders o ON c.CustomerID = o.CustomerID;
+________________________________________
+✅ c. Subqueries
+-- Customers who spent more than average order amount
+SELECT Name
+FROM Customers
+WHERE CustomerID IN (
+    SELECT CustomerID
+    FROM Orders
+    WHERE TotalAmount > (SELECT AVG(TotalAmount) FROM Orders)
+);
+
+-- Product(s) with the highest price
+SELECT Name, Price
+FROM Products
+WHERE Price = (SELECT MAX(Price) FROM Products);
+________________________________________
+✅ d. Aggregate functions (SUM, AVG)
+-- Total revenue from all orders
+SELECT SUM(TotalAmount) AS TotalRevenue
+FROM Orders;
+
+-- Average order amount by customer
+SELECT CustomerID, AVG(TotalAmount) AS AvgOrder
+FROM Orders
+GROUP BY CustomerID;
+
+-- Total quantity sold per product
+SELECT p.Name, SUM(od.Quantity) AS TotalQty
+FROM OrderDetails od
+JOIN Products p ON od.ProductID = p.ProductID
+GROUP BY p.Name;
+________________________________________
+✅ e. Create Views
+-- View showing customer order summary
+CREATE VIEW CustomerOrderSummary AS
+SELECT c.Name, COUNT(o.OrderID) AS TotalOrders, SUM(o.TotalAmount) AS TotalSpent
+FROM Customers c
+LEFT JOIN Orders o ON c.CustomerID = o.CustomerID
+GROUP BY c.Name;
+
+-- Use the view
+SELECT * FROM CustomerOrderSummary;
+________________________________________
+✅ f. Optimize queries with indexes
+-- Create index on Orders.CustomerID for faster joins
+CREATE INDEX idx_orders_customer ON Orders(CustomerID);
+
+-- Create index on OrderDetails.ProductID for faster product lookups
+CREATE INDEX idx_orderdetails_product ON OrderDetails(ProductID);
+
+
